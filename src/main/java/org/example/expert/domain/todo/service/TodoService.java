@@ -25,6 +25,7 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final WeatherClient weatherClient;
 
+    @Transactional
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
         User user = User.fromAuthUser(authUser);
 
@@ -47,20 +48,11 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size) {
+    public Page<TodoResponse> getTodos(int page, int size, String weather, String startTime, String endTime) {
         Pageable pageable = PageRequest.of(page - 1, size);
+            Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(weather,startTime,endTime,pageable);
+            return fromTodo(todos);
 
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
-
-        return todos.map(todo -> new TodoResponse(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        ));
     }
 
     public TodoResponse getTodo(long todoId) {
@@ -78,5 +70,16 @@ public class TodoService {
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
         );
+    }
+
+    private Page<TodoResponse> fromTodo(Page<Todo> todos) {
+        return todos.map(todo -> new TodoResponse(
+                todo.getId(),
+                todo.getTitle(),
+                todo.getContents(),
+                todo.getWeather(),
+                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail()),
+                todo.getCreatedAt(),
+                todo.getModifiedAt()));
     }
 }
