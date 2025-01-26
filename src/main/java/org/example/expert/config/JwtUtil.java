@@ -63,4 +63,19 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public String extractUsername(String jwt) {
+        return extractAllClaims(jwt).getSubject();
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(key) // 비밀 키를 사용하여 서명 검증
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public String extractRoles(String token) {
+        return extractAllClaims(token).get("auth", String.class);
+    }
 }
